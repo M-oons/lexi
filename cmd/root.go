@@ -1,26 +1,35 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os"
 
+	"github.com/m-oons/lexi/cmd/random"
 	"github.com/spf13/cobra"
 )
 
 func Execute() error {
-	return newRootCmd(os.Stdout, os.Stderr).Execute()
+	root := newRootCmd(os.Stdout, os.Stderr)
+	return root.Execute()
 }
 
 func newRootCmd(stdout io.Writer, stderr io.Writer) *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use: "lexi",
+	cmd := &cobra.Command{
+		Use:           "lexi",
+		Args:          cobra.MinimumNArgs(1),
+		SilenceErrors: true,
+		SilenceUsage:  false,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Help()
+			return fmt.Errorf("unknown command %q", args[0])
 		},
 	}
+	cmd.CompletionOptions.DisableDefaultCmd = true
 
-	rootCmd.SetOut(stdout)
-	rootCmd.SetErr(stderr)
+	cmd.SetOut(stdout)
+	cmd.SetErr(stderr)
 
-	return rootCmd
+	cmd.AddCommand(random.NewCmd())
+
+	return cmd
 }
