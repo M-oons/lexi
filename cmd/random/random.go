@@ -2,6 +2,9 @@ package random
 
 import (
 	"fmt"
+	"slices"
+	"sort"
+	"strings"
 
 	"github.com/m-oons/lexi/internal/random"
 	"github.com/spf13/cobra"
@@ -18,6 +21,7 @@ type options struct {
 	regex     string
 	uppercase bool
 	unique    bool
+	order     string
 	seed      int64
 }
 
@@ -50,13 +54,14 @@ func NewCmd() *cobra.Command {
 
 			// Generate words
 			rng := random.NewGenerator(opts.seed)
+			maxCount := max(opts.count, 0)
+			results := make([]string, 0, maxCount)
 
 			if opts.unique {
-				remaining := words
-				seenCap := max(opts.count, 0)
-				seen := make(map[string]struct{}, seenCap)
+				remaining := slices.Clone(words)
+				seen := make(map[string]struct{}, maxCount)
 
-				for len(seen) < opts.count && len(remaining) > 0 {
+				for len(seen) < maxCount && len(remaining) > 0 {
 					index := rng.Intn(len(remaining))
 					word := remaining[index]
 
@@ -70,21 +75,36 @@ func NewCmd() *cobra.Command {
 					}
 
 					seen[transformed] = struct{}{}
-					fmt.Println(transformed)
+					results = append(results, transformed)
 				}
+			} else {
+				for range maxCount {
+					if len(words) == 0 {
+						break
+					}
 
-				return nil
+					index := rng.Intn(len(words))
+					word := words[index]
+					transformed := random.TransformWord(word, opts.prefix, opts.suffix, opts.uppercase)
+					results = append(results, transformed)
+				}
 			}
 
-			for i := 0; i < opts.count; i++ {
-				if len(words) == 0 {
-					return nil
+			// Order results
+			if opts.order != "" {
+				switch strings.ToLower(opts.order) {
+				case "asc", "ascending":
+					sort.Strings(results)
+				case "desc", "descending":
+					sort.Sort(sort.Reverse(sort.StringSlice(results)))
+				default:
+					return fmt.Errorf("invalid order %q: must be one of [asc, ascending, desc, descending]", opts.order)
 				}
+			}
 
-				index := rng.Intn(len(words))
-				word := words[index]
-				transformed := random.TransformWord(word, opts.prefix, opts.suffix, opts.uppercase)
-				fmt.Println(transformed)
+			// Output results
+			for _, word := range results {
+				fmt.Fprintln(cmd.OutOrStdout(), word)
 			}
 
 			return nil
@@ -101,6 +121,7 @@ func NewCmd() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&opts.regex, "regex", "r", "", "regular expression to filter words")
 	cmd.PersistentFlags().BoolVar(&opts.uppercase, "uppercase", false, "convert words to uppercase")
 	cmd.PersistentFlags().BoolVarP(&opts.unique, "unique", "u", false, "don't generate duplicate words")
+	cmd.PersistentFlags().StringVarP(&opts.order, "order", "o", "", "order of output words")
 	cmd.PersistentFlags().Int64Var(&opts.seed, "seed", -1, "seed for random number generator")
 
 	return cmd

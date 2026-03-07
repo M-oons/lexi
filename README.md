@@ -37,6 +37,7 @@ Flags:
   -h, --help               help for random
       --max int            maximum length of words to generate
       --min int            minimum length of words to generate
+  -o, --order string       order of output words
   -p, --prefix string      prefix to add to each word
   -r, --regex string       regular expression to filter words
       --seed int           seed for random number generator (default -1)
