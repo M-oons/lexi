@@ -8,6 +8,12 @@ Small CLI for word utilities.
 make build
 ```
 
+## Test
+
+```bash
+make test
+```
+
 ## Usage
 ```
 Usage:
