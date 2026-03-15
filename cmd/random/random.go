@@ -75,12 +75,12 @@ func NewCmd() *cobra.Command {
 			// Order results
 			if opts.order != "" {
 				switch strings.ToLower(opts.order) {
-				case "asc", "ascending":
+				case "a", "asc", "ascending":
 					sort.Strings(results)
-				case "desc", "descending":
+				case "d", "desc", "descending":
 					sort.Sort(sort.Reverse(sort.StringSlice(results)))
 				default:
-					return fmt.Errorf("invalid order %q: must be one of [asc, ascending, desc, descending]", opts.order)
+					return fmt.Errorf("invalid order %q: must be one of [a, asc, ascending, d, desc, descending]", opts.order)
 				}
 			}
 
