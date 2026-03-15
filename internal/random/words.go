@@ -71,19 +71,6 @@ func FilterWords(words []string, minLength int, maxLength int, regex string) ([]
 	return filtered, nil
 }
 
-func TransformWord(word string, prefix string, suffix string, uppercase bool) string {
-	if prefix != "" {
-		word = prefix + word
-	}
-	if suffix != "" {
-		word = word + suffix
-	}
-	if uppercase {
-		word = strings.ToUpper(word)
-	}
-	return word
-}
-
 func parseLines(lines string, separator string) []string {
 	parts := strings.Split(lines, separator)
 	words := make([]string, 0, len(parts))

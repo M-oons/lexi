@@ -2,7 +2,6 @@ package random
 
 import (
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 
@@ -16,11 +15,8 @@ type options struct {
 	separator string
 	minLength int
 	maxLength int
-	prefix    string
-	suffix    string
 	regex     string
-	uppercase bool
-	unique    bool
+	format    string
 	order     string
 	seed      int64
 }
@@ -50,44 +46,30 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			words = filteredWords
 
 			// Generate words
+			count := max(opts.count, 1)
+			results := make([]string, 0, count)
 			rng := random.NewGenerator(opts.seed)
-			maxCount := max(opts.count, 0)
-			results := make([]string, 0, maxCount)
+			placeholders := strings.Count(opts.format, "{}")
+			placeholdersLower := strings.Count(opts.format, "{l}")
+			placeholdersUpper := strings.Count(opts.format, "{u}")
 
-			if opts.unique {
-				remaining := slices.Clone(words)
-				seen := make(map[string]struct{}, maxCount)
-
-				for len(seen) < maxCount && len(remaining) > 0 {
-					index := rng.Intn(len(remaining))
-					word := remaining[index]
-
-					last := len(remaining) - 1
-					remaining[index] = remaining[last]
-					remaining = remaining[:last]
-
-					transformed := random.TransformWord(word, opts.prefix, opts.suffix, opts.uppercase)
-					if _, ok := seen[transformed]; ok {
-						continue
-					}
-
-					seen[transformed] = struct{}{}
-					results = append(results, transformed)
+			for range count {
+				result := opts.format
+				for range placeholders {
+					word := filteredWords[rng.Intn(len(filteredWords))]
+					result = strings.Replace(result, "{}", word, 1)
 				}
-			} else {
-				for range maxCount {
-					if len(words) == 0 {
-						break
-					}
-
-					index := rng.Intn(len(words))
-					word := words[index]
-					transformed := random.TransformWord(word, opts.prefix, opts.suffix, opts.uppercase)
-					results = append(results, transformed)
+				for range placeholdersLower {
+					word := filteredWords[rng.Intn(len(filteredWords))]
+					result = strings.Replace(result, "{l}", strings.ToLower(word), 1)
 				}
+				for range placeholdersUpper {
+					word := filteredWords[rng.Intn(len(filteredWords))]
+					result = strings.Replace(result, "{u}", strings.ToUpper(word), 1)
+				}
+				results = append(results, result)
 			}
 
 			// Order results
@@ -113,14 +95,11 @@ func NewCmd() *cobra.Command {
 
 	cmd.PersistentFlags().IntVarP(&opts.count, "count", "n", 1, "maximum number of words to generate")
 	cmd.PersistentFlags().StringVarP(&opts.words, "words", "w", "", "words to use for randomization")
-	cmd.PersistentFlags().StringVar(&opts.separator, "separator", "", "separator to use between words (defaults to newline for files, comma for inline words)")
+	cmd.PersistentFlags().StringVarP(&opts.separator, "separator", "s", "", "separator to use between words (defaults to newline for files, comma for inline words)")
 	cmd.PersistentFlags().IntVar(&opts.minLength, "min", 0, "minimum length of words to generate")
 	cmd.PersistentFlags().IntVar(&opts.maxLength, "max", 0, "maximum length of words to generate")
-	cmd.PersistentFlags().StringVarP(&opts.prefix, "prefix", "p", "", "prefix to add to each word")
-	cmd.PersistentFlags().StringVarP(&opts.suffix, "suffix", "s", "", "suffix to add to each word")
 	cmd.PersistentFlags().StringVarP(&opts.regex, "regex", "r", "", "regular expression to filter words")
-	cmd.PersistentFlags().BoolVar(&opts.uppercase, "uppercase", false, "convert words to uppercase")
-	cmd.PersistentFlags().BoolVarP(&opts.unique, "unique", "u", false, "don't generate duplicate words")
+	cmd.PersistentFlags().StringVarP(&opts.format, "format", "f", "{}", "output format for each line; use {}/{l}/{u} placeholders for random words")
 	cmd.PersistentFlags().StringVarP(&opts.order, "order", "o", "", "order of output words")
 	cmd.PersistentFlags().Int64Var(&opts.seed, "seed", -1, "seed for random number generator")
 

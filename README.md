@@ -34,16 +34,13 @@ Usage:
 
 Flags:
   -n, --count int          maximum number of words to generate (default 1)
+  -f, --format string      output format for each line; use {}/{l}/{u} placeholders for random words in default case, lower case or upper case respectively (default "{}")
   -h, --help               help for random
       --max int            maximum length of words to generate
       --min int            minimum length of words to generate
   -o, --order string       order of output words
-  -p, --prefix string      prefix to add to each word
   -r, --regex string       regular expression to filter words
       --seed int           seed for random number generator (default -1)
       --separator string   separator to use between words (defaults to newline for files, comma for inline words)
-  -s, --suffix string      suffix to add to each word
-  -u, --unique             don't generate duplicate words
-      --uppercase          convert words to uppercase
   -w, --words string       words to use for randomization
 ```

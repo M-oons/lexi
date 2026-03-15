@@ -167,65 +167,6 @@ func TestFilterWords(t *testing.T) {
 	}
 }
 
-func TestTransformWord(t *testing.T) {
-	tests := []struct {
-		name      string
-		word      string
-		prefix    string
-		suffix    string
-		uppercase bool
-		want      string
-	}{
-		{
-			name: "no transforms",
-			word: "foo",
-			want: "foo",
-		},
-		{
-			name:   "prefix only",
-			word:   "foo",
-			prefix: "pre-",
-			want:   "pre-foo",
-		},
-		{
-			name:   "suffix only",
-			word:   "foo",
-			suffix: "-suf",
-			want:   "foo-suf",
-		},
-		{
-			name:   "prefix and suffix",
-			word:   "foo",
-			prefix: "pre-",
-			suffix: "-suf",
-			want:   "pre-foo-suf",
-		},
-		{
-			name:      "uppercase only",
-			word:      "FoO",
-			uppercase: true,
-			want:      "FOO",
-		},
-		{
-			name:      "uppercase includes prefix and suffix",
-			word:      "foo",
-			prefix:    "pre-",
-			suffix:    "-suf",
-			uppercase: true,
-			want:      "PRE-FOO-SUF",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			got := TransformWord(tc.word, tc.prefix, tc.suffix, tc.uppercase)
-			if got != tc.want {
-				t.Fatalf("TransformWord(%q, %q, %q, %v) = %q, want %q", tc.word, tc.prefix, tc.suffix, tc.uppercase, got, tc.want)
-			}
-		})
-	}
-}
-
 func TestParseLines(t *testing.T) {
 	tests := []struct {
 		name      string
